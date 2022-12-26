@@ -7,14 +7,17 @@ import java.util.Map;
 
 public class Interfaz extends Clase{
     private boolean isFreeFromCircularInheritance;
+    public boolean hasOffsets;
 
     public Interfaz(Token interfaceToken){
         interfaces = new HashMap<>();
         methods = new HashMap<>();
+        methodsByOffset = new HashMap<>();
 
         classToken = interfaceToken;
         isConsolidated = false;
         isFreeFromCircularInheritance = false;
+        hasOffsets = false;
     }
 
 
@@ -67,6 +70,7 @@ public class Interfaz extends Clase{
         }
     }
 
+
     @Override
     public void checkCircularInheritance(HashMap<String, Token> classAncestors) throws SemanticException {
         if(!isFreeFromCircularInheritance)
@@ -78,6 +82,8 @@ public class Interfaz extends Clase{
                     throw new SemanticException(extendedInterface.getToken(), "se produce extension circular");
                 }
                 isFreeFromCircularInheritance = true;
+                this.ancestors = classAncestors;
+                classAncestors.remove(this.getToken().getLexeme());
             }
     }
 
@@ -85,4 +91,16 @@ public class Interfaz extends Clase{
     public HashMap<String, Atributo> getAttributes() {
         return null;
     }
+
+    @Override
+    public Atributo getAttribute(String attributeName) {
+        return null;
+    }
+
+    @Override
+    public void generate() {
+
+    }
+
+
 }

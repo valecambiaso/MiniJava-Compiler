@@ -1,11 +1,13 @@
 package symbolTable.AST.encadenado;
 
 import lexicalAnalyzer.Token;
-import symbolTable.Tipo;
+import symbolTable.SemanticException;
+import symbolTable.TipoMetodo;
 
 public abstract class NodoEncadenado {
     protected Token encadenadoToken;
     protected NodoEncadenado encadenado;
+    protected boolean isLeftSide = false;
 
     public NodoEncadenado(Token encadenadoToken){
         this.encadenadoToken = encadenadoToken;
@@ -15,5 +17,10 @@ public abstract class NodoEncadenado {
         this.encadenado = enc;
     }
 
-    //public abstract Tipo check(Tipo t);
+    public abstract TipoMetodo check(TipoMetodo t) throws SemanticException;
+    public abstract boolean isVariable();
+    public abstract boolean isMethodOrConstructor();
+    public abstract void generate();
+
+    public void setLeftSide(boolean leftSide){this.isLeftSide = leftSide;}
 }

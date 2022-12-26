@@ -2,28 +2,44 @@ package symbolTable;
 
 import lexicalAnalyzer.Token;
 
+import java.awt.*;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 
 public class ClaseConcreta extends Clase{
 
     private Token inheritsFrom;
     private HashMap<String,Atributo> attributes;
+    protected HashMap<String,Metodo> methodsThisClass;
     private Constructor constructor;
     private boolean isFreeFromCircularInheritance;
+    private LinkedList<Metodo> notStaticMethods;
+    public int biggestAvailableOffset;
 
     public ClaseConcreta(Token concreteClassToken){
         attributes = new HashMap<>();
         interfaces = new HashMap<>();
         methods = new HashMap<>();
+        methodsByOffset = new HashMap<>();
+        methodsThisClass = new HashMap<>();
 
         classToken = concreteClassToken;
         isConsolidated = false;
         isFreeFromCircularInheritance = false;
+        notStaticMethods = new LinkedList<>();
+        biggestAvailableOffset = 0;
+
         if(classToken.getLexeme().equals("Object")){
             isConsolidated = true;
             isFreeFromCircularInheritance = true;
         }
+    }
+
+    public void insertMethod(String methodLexeme, Metodo method) throws SemanticException {
+        super.insertMethod(methodLexeme,method);
+        methodsThisClass.put(methodLexeme,method);
     }
 
     public void checkStatements() throws SemanticException {
@@ -85,6 +101,8 @@ public class ClaseConcreta extends Clase{
 
             overrideInterfaceMethods();
 
+            setOffsetMethods(ancestor);
+
             for(Atributo attributeAncestor:ancestor.getAttributes().values()){
                 Atributo attributeThisClass = attributes.get(attributeAncestor.getToken().getLexeme());
                 if(attributeThisClass != null){
@@ -94,7 +112,38 @@ public class ClaseConcreta extends Clase{
                 }
             }
 
+            setOffsetAttributes(ancestor);
+
             isConsolidated = true;
+        }
+    }
+
+    private void setOffsetMethods(Clase ancestor){
+        int cantNotStaticMethodsAncestor = ancestor.getNotStaticMethods().size();
+        for(Metodo method : methods.values()){
+            if(!method.isStatic()){
+                Metodo ancestorMethod = ancestor.getMethod(method.getToken().getLexeme());
+                if(ancestorMethod == null){
+                    method.setOffset(cantNotStaticMethodsAncestor);
+                    methodsByOffset.put(cantNotStaticMethodsAncestor,method);
+                    cantNotStaticMethodsAncestor++;
+                }else{
+                    methodsByOffset.put(ancestorMethod.getOffset(),method);
+                    method.setOffset(ancestorMethod.getOffset());
+                }
+                notStaticMethods.add(method);
+            }
+        }
+        biggestAvailableOffset = cantNotStaticMethodsAncestor;
+    }
+
+    private void setOffsetAttributes(Clase ancestor){
+        int cantAttributesAncestor = ancestor.getAttributes().size();
+        for(Atributo atr : attributes.values()){
+            if(atr.getOffset() == null){
+                cantAttributesAncestor++;
+                atr.setOffset(cantAttributesAncestor);
+            }
         }
     }
 
@@ -107,6 +156,7 @@ public class ClaseConcreta extends Clase{
                 throw new SemanticException(inheritsFrom, "se produce herencia circular");
             }
             isFreeFromCircularInheritance = true;
+            this.ancestors = classAncestors;
         }
     }
 
@@ -148,10 +198,65 @@ public class ClaseConcreta extends Clase{
         return attributes;
     }
 
+    public int getBiggestAvailableOffset(){
+        return biggestAvailableOffset;
+    }
+
+    public void setBiggestAvailableOffset(int offset){
+        this.biggestAvailableOffset = offset;
+    }
+
+    public Atributo getAttribute(String attributeName){return attributes.get(attributeName);}
+
     public void checkSentences() throws SemanticException{
         SymbolTable.actualClass = this;
         for(Metodo method: methods.values()){
-            method.checkSentences();
+            if(method.getClassCont().getLexeme().equals(this.classToken.getLexeme()))
+                method.checkSentences();
+        }
+
+        for(Interfaz i : interfaces.values()){
+            Clase implementedInt = SymbolTable.getSymbolTableInstance().getClass(i.getToken().getLexeme());
+            for(Metodo m : implementedInt.getMethods().values()){
+                if(m.getOffset() == null){
+                    m.setOffset(this.methods.get(m.getToken().getLexeme()).getOffset());
+                    implementedInt.methodsByOffset.put(this.methods.get(m.getToken().getLexeme()).getOffset(),m);
+                }else{
+                    if(!m.getOffset().equals(this.methods.get(m.getToken().getLexeme()).getOffset())){
+                        m.changeOffset();
+                    }
+                }
+            }
+        }
+    }
+
+    public void generate(){
+        SymbolTable.actualClass = this;
+
+        //Creacion de las VTables
+        SymbolTable.instructions.add(".DATA");
+        if(notStaticMethods.size() == 0){
+            SymbolTable.instructions.add("VT_" + classToken.getLexeme() + ": NOP");
+        }else{
+            String instruction = "VT_" + classToken.getLexeme() + ": DW ";
+
+            for(int i = 0; i < biggestAvailableOffset; i++){
+                if(methodsByOffset.get(i) != null){
+                    instruction += methods.get(methodsByOffset.get(i).getToken().getLexeme()).getMethodLabel() + ",";
+                }else{
+                    instruction += "0,";
+                }
+            }
+            instruction = instruction.substring(0,instruction.length()-1);
+            SymbolTable.instructions.add(instruction);
+        }
+
+        //Metodos
+        SymbolTable.instructions.add(".CODE");
+        constructor.generate();
+        for(Metodo method: methods.values()){
+            if(method.getClassCont().getLexeme().equals(this.classToken.getLexeme())) //Metodo en esta clase
+                method.generate();
         }
     }
 }

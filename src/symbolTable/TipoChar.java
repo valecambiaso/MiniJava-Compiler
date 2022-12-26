@@ -6,5 +6,10 @@ public class TipoChar extends TipoPrimitivo{
         return "char";
     }
 
-    public boolean isSubtype(TipoChar ancestorType){return true;}
+    @Override
+    public boolean isSubtype(TipoMetodo ancestorType) {
+        return ancestorType.isSubtypeV(this);
+    }
+
+    public boolean isSubtypeV(TipoChar ancestorType){return true;}
 }

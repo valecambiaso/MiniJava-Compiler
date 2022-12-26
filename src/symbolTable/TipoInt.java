@@ -6,5 +6,10 @@ public class TipoInt extends TipoPrimitivo{
         return "int";
     }
 
-    public boolean isSubtype(TipoInt ancestorType){return true;}
+    @Override
+    public boolean isSubtype(TipoMetodo ancestorType) {
+        return ancestorType.isSubtypeV(this);
+    }
+
+    public boolean isSubtypeV(TipoInt ancestorType){return true;}
 }

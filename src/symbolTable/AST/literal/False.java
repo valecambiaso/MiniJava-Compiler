@@ -3,6 +3,7 @@ package symbolTable.AST.literal;
 import lexicalAnalyzer.Token;
 import symbolTable.AST.expresion.NodoOperando;
 import symbolTable.SemanticException;
+import symbolTable.SymbolTable;
 import symbolTable.Tipo;
 import symbolTable.TipoBoolean;
 
@@ -13,8 +14,12 @@ public class False extends NodoOperando {
         this.token = token;
     }
 
-    @Override
     public Tipo check() throws SemanticException {
         return new TipoBoolean();
+    }
+
+    @Override
+    public void generate() {
+        SymbolTable.instructions.add("PUSH 0 ; Apilo false");
     }
 }

@@ -6,5 +6,10 @@ public class TipoVoid extends TipoMetodo{
         return "void";
     }
 
-    public boolean isSubtype(TipoVoid ancestorType){return true;}
+    @Override
+    public boolean isSubtype(TipoMetodo ancestorType) {
+        return ancestorType.isSubtypeV(this);
+    }
+
+    public boolean isSubtypeV(TipoVoid ancestorType){return true;}
 }

@@ -1,8 +1,9 @@
 package symbolTable.AST.expresion;
 
 import symbolTable.SemanticException;
-import symbolTable.Tipo;
+import symbolTable.TipoMetodo;
 
 public abstract class NodoExpresion {
-    //public abstract Tipo check() throws SemanticException;
+    public abstract TipoMetodo check() throws SemanticException;
+    public abstract void generate();
 }

@@ -6,5 +6,10 @@ public class TipoBoolean extends TipoPrimitivo{
         return "boolean";
     }
 
-    public boolean isSubtype(TipoBoolean ancestorType){return true;}
+    @Override
+    public boolean isSubtype(TipoMetodo ancestorType) {
+        return ancestorType.isSubtypeV(this);
+    }
+
+    public boolean isSubtypeV(TipoBoolean ancestorType){return true;}
 }

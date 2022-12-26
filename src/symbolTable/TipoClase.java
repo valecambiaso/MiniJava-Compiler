@@ -21,12 +21,17 @@ public class TipoClase extends Tipo{
         }
     }
 
-    public boolean isSubtype(TipoClase ancestorType) throws SemanticException {
-        Clase classAncestor = SymbolTable.getSymbolTableInstance().getClass(ancestorType.getTypeName());
+    @Override
+    public boolean isSubtype(TipoMetodo ancestorType) throws SemanticException {
+        return ancestorType.isSubtypeV(this);
+    }
+
+    public boolean isSubtypeV(TipoClase subtype) throws SemanticException {
+        Clase classAncestor = SymbolTable.getSymbolTableInstance().getClass(this.getTypeName());
         if(classAncestor.isConcreteClass()){
-            return ancestorType.isSubtypeConcreteClass(this);
+            return this.isSubtypeConcreteClass(subtype);
         }else{
-            return ancestorType.isSubtypeInterface(this);
+            return this.isSubtypeInterface(subtype);
         }
     }
 

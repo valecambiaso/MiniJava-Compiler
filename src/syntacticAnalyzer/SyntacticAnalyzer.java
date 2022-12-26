@@ -32,10 +32,9 @@ public class SyntacticAnalyzer {
     private final List<String> primerosTipoPrimitivo = Arrays.asList("kw_boolean", "kw_char", "kw_int");
     private final List<String> primerosTipo = Arrays.asList("idClase","kw_boolean", "kw_char", "kw_int");
     private final List<String> primerosListaArgsFormales = Arrays.asList("idClase","kw_boolean", "kw_char", "kw_int");
-    private final List<String> primerosSentencia = Arrays.asList("puntoComaPunt", "kw_this", "idMetVar", "kw_new", "idClase", "parentesisAbrirPunt", "kw_var", "kw_return", "kw_if", "kw_while", "llaveAbrirPunt","kw_boolean", "kw_char", "kw_int");
+    private final List<String> primerosSentencia = Arrays.asList("puntoComaPunt", "kw_this", "idMetVar", "kw_new", "idClase", "parentesisAbrirPunt", "kw_var", "kw_return", "kw_if", "kw_while", "llaveAbrirPunt");
     private final List<String> primerosAcceso = Arrays.asList("kw_this", "idMetVar", "kw_new", "idClase", "parentesisAbrirPunt");
-    private final List<String> primerosVarLocal = Arrays.asList("kw_var","kw_boolean", "kw_char", "kw_int");
-    private final List<String> primerosFinUOtro = Arrays.asList("comaPunt","puntoComaPunt");
+    private final List<String> primerosVarLocal = Arrays.asList("kw_var");
     private final List<String> primerosReturn = Arrays.asList("kw_return");
     private final List<String> primerosIf = Arrays.asList("kw_if");
     private final List<String> primerosWhile = Arrays.asList("kw_while");
@@ -68,13 +67,12 @@ public class SyntacticAnalyzer {
     private final List<String> siguientesListaArgsFormalesF = siguientesListaArgsFormalesOpt;
     private final List<String> siguientesListaSentencias = Arrays.asList("llaveCerrarPunt");
     private final List<String> siguientesExpresionOpt = Arrays.asList("puntoComaPunt");
-    private final List<String> siguientesElse = Arrays.asList("puntoComaPunt","kw_this","idMetVar","kw_new","idClase","parentesisAbrirPunt","kw_var","kw_return","kw_if","kw_while","llaveAbrirPunt","llaveCerrarPunt","kw_else","kw_boolean","kw_char","kw_int");
+    private final List<String> siguientesElse = Arrays.asList("puntoComaPunt","kw_this","idMetVar","kw_new","idClase","parentesisAbrirPunt","kw_var","kw_return","kw_if","kw_while","llaveAbrirPunt","llaveCerrarPunt","kw_else");
     private final List<String> siguientesExpresionR = Arrays.asList("puntoComaPunt","parentesisCerrarPunt","comaPunt");
     private final List<String> siguientesPrimarioF = Arrays.asList("puntoPunt","igualAsignacion","sumaAsignacion","restaAsignacion","orOp","andOp","igualOp","notIgualOp","mayorOp","menorOp","mayorIgualOp","menorIgualOp","sumaOp","restaOp","multOp","divOp","modOp","puntoComaPunt","parentesisCerrarPunt","comaPunt");
     private final List<String> siguientesListaExpsOpt = Arrays.asList("parentesisCerrarPunt");
     private final List<String> siguientesListaExpsF = Arrays.asList("parentesisCerrarPunt");
     private final List<String> siguientesEncadenadoOpt = Arrays.asList("igualAsignacion","sumaAsignacion","restaAsignacion","orOp","andOp","igualOp","notIgualOp","mayorOp","menorOp","mayorIgualOp","menorIgualOp","sumaOp","restaOp","multOp","divOp","modOp","puntoComaPunt","parentesisCerrarPunt","comaPunt");
-    private final List<String> siguientesFinUOtro = Arrays.asList("puntoComaPunt");
 
     public SyntacticAnalyzer(LexicalAnalyzer lexicalAnalyzer) throws LexicalException, IOException, SyntacticException, SemanticException {
         this.lexicalAnalyzer = lexicalAnalyzer;
@@ -304,7 +302,7 @@ public class SyntacticAnalyzer {
     private void listaDecAtrs(String visibility, Tipo type) throws LexicalException, SyntacticException, IOException, SemanticException {
         Token idMetVarToken = actualToken;
         match("idMetVar", "nombre de atributo");
-        Atributo newAttribute = new Atributo(visibility,type,idMetVarToken);
+        Atributo newAttribute = new Atributo(visibility,type,idMetVarToken,SymbolTable.actualClass.getToken());
         SymbolTable.actualClass.insertAttribute(idMetVarToken.getLexeme(),newAttribute);
         listaDecAtrsF(visibility, type);
     }
@@ -383,8 +381,6 @@ public class SyntacticAnalyzer {
         SymbolTable.actualMethod.insertFormalParameter(idMetVarToken.getLexeme(),newFormalParameter);
     }
 
-    //TODO
-
     private NodoBloque bloque() throws LexicalException, SyntacticException, IOException {
         match("llaveAbrirPunt", "{");
         NodoBloque blockNode = new NodoBloque();
@@ -409,10 +405,6 @@ public class SyntacticAnalyzer {
         if(actualToken.getTokenType().equals("puntoComaPunt")){
             match("puntoComaPunt", ";");
             return new NodoSentenciaVacia();
-        }else if(actualToken.getTokenType().equals("idClase")){ //Variables locales clasicas lo puedo borrar??
-            Token idClase = actualToken;
-            match("idClase", "nombre de clase");
-            return auxiliar(idClase);
         }else if(primerosAcceso.contains(actualToken.getTokenType())){
             NodoAcceso access = acceso();
             return sentenciaF(access);
@@ -435,22 +427,6 @@ public class SyntacticAnalyzer {
         }
     }
 
-    private NodoSentencia auxiliar(Token idClase) throws LexicalException, SyntacticException, IOException {
-        if(actualToken.getTokenType().equals("idMetVar")){
-            NodoSentencia sentence = varLocal();
-            match("puntoComaPunt", ";");
-            return sentence;
-        }else if(actualToken.getTokenType().equals("puntoPunt")){
-            match("puntoPunt",".");
-            match("idMetVar","nombre de metodo");
-            argsActuales();
-            encadenadoOpt();
-            sentenciaF();
-        }else{
-            throw new SyntacticException(actualToken, "variable local o punto");
-        }
-    }
-
     private NodoSentencia sentenciaF(NodoAcceso access) throws LexicalException, SyntacticException, IOException {
         if(primerosTipoDeAsignacion.contains(actualToken.getTokenType())){
             NodoAsignacion asig = tipoDeAsignacion();
@@ -459,8 +435,9 @@ public class SyntacticAnalyzer {
             asig.addAccessAndExpression(access,exp);
             return asig;
         }else if(actualToken.getTokenType().equals("puntoComaPunt")){
+            Token dotComaToken = actualToken;
             match("puntoComaPunt", ";");
-            return new NodoLlamada(access);
+            return new NodoLlamada(access,dotComaToken);
         }else{
             throw new SyntacticException(actualToken, "asignacion o llamada");
         }
@@ -483,7 +460,6 @@ public class SyntacticAnalyzer {
     }
 
     private NodoVarLocal varLocal() throws LexicalException, SyntacticException, IOException {
-        if(actualToken.getTokenType().equals("kw_var")){ //el tipo de la variable lo se despues de chequear?
             match("kw_var", "var");
             Token localVarToken = actualToken;
             match("idMetVar", "nombre de variable");
@@ -491,42 +467,6 @@ public class SyntacticAnalyzer {
             match("igualAsignacion", "=");
             NodoExpresion expression = expresion();
             return new NodoVarLocal(localVarToken,equalsToken,expression);
-        }else if(primerosTipo.contains(actualToken.getTokenType())){
-            tipo();
-            varLocal2();
-        }else if(actualToken.getTokenType().equals("idMetVar")){ //Por este camino viene si el tipo de la varLocal es idClase
-            varLocal2();
-        }else{
-            throw new SyntacticException(actualToken, "var o tipo");
-        }
-    }
-
-    private void varLocal2() throws LexicalException, SyntacticException, IOException {
-        match("idMetVar", "nombre de variable");
-        varExp();
-    }
-
-    private void varExp() throws LexicalException, SyntacticException, IOException {
-        if(actualToken.getTokenType().equals("igualAsignacion")){
-            match("igualAsignacion","=");
-            expresion();
-            finUOtro();
-        }else if(primerosFinUOtro.contains(actualToken.getTokenType())){
-            finUOtro();
-        }else{
-            throw new SyntacticException(actualToken, "expresion, ; o ,");
-        }
-    }
-
-    private void finUOtro() throws LexicalException, SyntacticException, IOException {
-        if(actualToken.getTokenType().equals("comaPunt")){
-            match("comaPunt",",");
-            varLocal2();
-        }else if(siguientesFinUOtro.contains(actualToken.getTokenType())){
-            //epsilon
-        }else{
-            throw new SyntacticException(actualToken, "; o ,");
-        }
     }
 
     private NodoReturn return_() throws LexicalException, SyntacticException, IOException {
@@ -707,13 +647,13 @@ public class SyntacticAnalyzer {
     }
 
     private NodoAcceso acceso() throws LexicalException, SyntacticException, IOException {
-        NodoPrimario primary = primario();
+        NodoAcceso primary = primario();
         NodoEncadenado enc = encadenadoOpt();
         primary.addEncadenado(enc);
         return primary;
     }
 
-    private NodoPrimario primario() throws LexicalException, SyntacticException, IOException {
+    private NodoAcceso primario() throws LexicalException, SyntacticException, IOException {
         if(primerosAccesoThis.contains(actualToken.getTokenType())){
             return accesoThis();
         }else if(primerosAccesoConstructor.contains(actualToken.getTokenType())){
@@ -731,7 +671,7 @@ public class SyntacticAnalyzer {
         }
     }
 
-    private NodoPrimario primarioF(Token idMetVarToken) throws LexicalException, SyntacticException, IOException {
+    private NodoAcceso primarioF(Token idMetVarToken) throws LexicalException, SyntacticException, IOException {
         if(primerosArgsActuales.contains(actualToken.getTokenType())){
             List<NodoExpresion> expressionList = argsActuales();
             return new NodoAccesoMetodo(idMetVarToken,expressionList);
@@ -794,7 +734,7 @@ public class SyntacticAnalyzer {
     private List<NodoExpresion> listaExps() throws LexicalException, SyntacticException, IOException {
         NodoExpresion expression = expresion();
         List<NodoExpresion> expressionList = listaExpsF();
-        expressionList.add(0,expression); ////????
+        expressionList.add(0,expression);
         return expressionList;
     }
 

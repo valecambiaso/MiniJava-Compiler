@@ -6,10 +6,11 @@ public abstract class TipoMetodo {
 
     public void checkIfTypeExists() throws SemanticException {}
 
-    public boolean isSubtype(TipoNull ancestorType){return false;}
-    public boolean isSubtype(TipoClase ancestorType) throws SemanticException {return false;}
-    public boolean isSubtype(TipoVoid ancestorType){return false;}
-    public boolean isSubtype(TipoChar ancestorType){return false;}
-    public boolean isSubtype(TipoInt ancestorType){return false;}
-    public boolean isSubtype(TipoBoolean ancestorType){return false;}
+    public abstract boolean isSubtype(TipoMetodo ancestorType) throws SemanticException;
+    public boolean isSubtypeV(TipoNull ancestorType){return false;}
+    public boolean isSubtypeV(TipoClase ancestorType) throws SemanticException {return false;}
+    public boolean isSubtypeV(TipoVoid ancestorType){return false;}
+    public boolean isSubtypeV(TipoChar ancestorType){return false;}
+    public boolean isSubtypeV(TipoInt ancestorType){return false;}
+    public boolean isSubtypeV(TipoBoolean ancestorType){return false;}
 }

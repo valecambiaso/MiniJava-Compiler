@@ -6,6 +6,11 @@ public class TipoNull extends Tipo{
         return "null";
     }
 
-    public boolean isSubtype(TipoNull ancestorType){return true;}
-    public boolean isSubtype(TipoClase ancestorType){return true;}
+    @Override
+    public boolean isSubtype(TipoMetodo ancestorType) {
+        return ancestorType instanceof TipoClase;
+    }
+
+    public boolean isSubtypeV(TipoNull ancestorType){return true;}
+    public boolean isSubtypeV(TipoClase ancestorType){return true;}
 }

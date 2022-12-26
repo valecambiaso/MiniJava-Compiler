@@ -1,19 +1,26 @@
 package symbolTable;
 
 import lexicalAnalyzer.Token;
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public abstract class Clase {
     protected Token classToken;
     protected HashMap<String,Interfaz> interfaces;
     protected HashMap<String,Metodo> methods;
+    public HashMap<Integer,Metodo> methodsByOffset;
     protected boolean isConsolidated;
+    protected HashMap<String, Token> ancestors;
 
     public abstract void checkStatements() throws SemanticException;
     public abstract boolean isConcreteClass();
     public abstract void checkCircularInheritance(HashMap<String,Token> classAncestors) throws SemanticException;
     public abstract void consolidate() throws SemanticException;
     public abstract HashMap<String,Atributo> getAttributes();
+    public abstract Atributo getAttribute(String attributeName);
+    public abstract void generate();
 
     public Token getToken(){
         return this.classToken;
@@ -21,6 +28,23 @@ public abstract class Clase {
 
     public HashMap<String,Metodo> getMethods(){
         return methods;
+    }
+    public List<Metodo> getNotStaticMethods(){
+        List<Metodo> notStaticMethods = new ArrayList<>();
+        for (Metodo metodo : methods.values()){
+            if(!metodo.isStatic()){
+                notStaticMethods.add(metodo);
+            }
+        }
+        return notStaticMethods;
+    }
+
+    //public void setOffsetMethods(HashMap<String,Metodo> methods){}
+    public int getBiggestAvailableOffset(){return -1;}
+    public void setBiggestAvailableOffset(int offset){}
+
+    public Metodo getMethod(String method){
+        return methods.get(method);
     }
     public HashMap<String,Interfaz> getInterfaces(){return interfaces;}
 
